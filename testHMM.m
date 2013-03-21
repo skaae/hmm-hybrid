@@ -17,12 +17,12 @@ rng('default');rng(0);
 %% settings for hmm model and generate data
 transition = [.9 .1; 0.05 .95;];
 emission   = [1/6, 1/6, 1/6, 1/6, 1/6, 1/6;...
-              1/10, 1/10, 1/10, 1/10, 1/10, 5/10];
+    1/10, 1/10, 1/10, 1/10, 1/10, 5/10];
 
-pi         = [0.5; 0.5];
-numStates  = 2;
-d           = 21;                                       %window size for nn
-[obs,states] = hmmgenerate(300,transition,emission);    %generate hmm data
+pi              = [0.5; 0.5];
+numStates       = 2;
+d               = 21;                                   %window size for nn
+[obs,states]    = hmmgenerate(300,transition,emission);    
 
 
 %% training network
@@ -31,8 +31,8 @@ nn                 = trainNN(nninput,nnoutput);
 %save('nn.mat','nn')
 
 %% estimate A,B and pi
-B_est           = calcB(nn,nninput,states);
-[A_est,pi_est]  = hmmest({states},numStates);
+B_est              = calcB(nn,nninput,states);
+[A_est,pi_est]     = hmmest({states},numStates);
 
 
 
@@ -48,86 +48,83 @@ disp('Viterbi error:')
 disp(viterbiErr)
 
 fs = 14;
-f1 = figure();
+figure();
 hold on
 area(states-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));  %true path in grey
 plot(path-1)                                                      %plot viterbi prdictions
-title('Viterbi prediction','FontSize',16,'fontWeight','bold'); 
+title('Viterbi prediction','FontSize',16,'fontWeight','bold');
 xlabel('t','FontSize',fs,'fontWeight','bold')
 ylabel('prediction','FontSize',fs,'fontWeight','bold')
 hold off
 
-f2 = figure();
+figure();
 hold on
 area(states-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));
-plot(decode(1,:))       
+plot(decode(1,:))
 title('forward-backward algorithm','FontSize',16,'fontWeight','bold')
-ylabel('P(state_{t} = fair | obs_{1:t})','FontSize',fs,'fontWeight','bold'); 
+ylabel('P(state_{t} = fair | obs_{1:t})','FontSize',fs,'fontWeight','bold');
 xlabel('t','FontSize',fs,'fontWeight','bold');
 hold off
 
 
 
-    function B = calcB(nn,nninput,hidden)
-        %calculate probability of each state [p(s)]
-        ns = length(hidden);   %number of state
-        f = sum(hidden == 1) / ns;   %fair state
-        b = sum(hidden == 2) / ns;   %bend state
-        %run feedforward in network
+    function B = calcB(nn,nninput,states)
+        % In HMM this should be P(obs | state), but we use a Neural
+        % Networks which outputs P(State | obs), sort of uses bayes to
+        % resolve this...
+        
+        %Get predictions from network
         nn.testing = 1;
         nn = nnff(nn, nninput, zeros(size(nninput,1), nn.size(end)));
         nn.testing = 0;
+        nnpred = nn.a{end}';
         
-        nnpred = nn.a{end}';%for hmm terminology this needs to be transposed
         
+        %counts priors
         % using p(o|s) = p(s|o)p(o) / p(s)
         % for somereason we can disregard p(o) ??
-        nnpred(1,:) = nnpred(1,:) ./ f;
-        nnpred(2,:) = nnpred(2,:) ./ b;     
+        L  = length(states);            %number of state
+        ns = length(unique(states));
+        statePrior = zeros(1,ns);
+        for n = 1:ns
+            statePrior(n) = sum(states == n) / L;
+            nnpred(n,:) = nnpred(n,:) ./ statePrior(n);
+        end
         
         %normalize
         B  = nnpred ./ repmat(sum(nnpred,1),size(nnpred,1),1);
-
-        
-        
     end
     function  nn = trainNN(nninput,nnoutput)
-        %% ex1 vanilla neural net
-        [N,inputsize]   = size(nninput);
-        [~,outputsize]  = size(nnoutput);
-        nn = nnsetup([inputsize 200 outputsize]);
-        nn.activation_function = 'sigm';    %  Sigmoid activation function
-        nn.output = 'softmax';
-        %nn.errfun = @nntest;               %  misclassification
-        nn.errfun = @nnmatthew;
-        %the default for errfun is nntest, the default for plotfun is updatefigures
-        %  This function is applied to train and optionally validation set should be format [er, notUsed] = name(nn, x, y)
-        %opts.plotfun                = @nnplotnntest;
-        opts.plotfun                 = @nnplotmatthew;
-        opts.numepochs =  100;   %  Number of full sweeps through data
-        opts.batchsize = N;  %  Take a mean gradient step over this many samples
-        opts.plot = 1;
-        nn.learningRate = 1e-1;                %  Sigm require a lower learning rate
-        nn.weightPenaltyL2 = 1e-5;
+        % Trains a neural netowork from sliding window data
+        [N,inputsize]           = size(nninput);
+        [~,outputsize]          = size(nnoutput);
+        nn                      = nnsetup([inputsize 200 outputsize]);
+        nn.activation_function  = 'sigm';
+        nn.output               = 'softmax';
+        nn.errfun               = @nnmatthew;
+        nn.learningRate         = 1e-1;
+        nn.weightPenaltyL2      = 1e-5;
         
-        [nn, L,loss] = nntrain(nn, nninput, nnoutput,opts);
+        opts.plotfun            = @nnplotmatthew;
+        opts.numepochs          = 100;
+        opts.batchsize          = N;
+        opts.plot               = 1;
         
+        [nn, L,loss]            = nntrain(nn, nninput, nnoutput,opts);
     end
     function [nninput,nnoutput] = createNNdata(X,y,d)
-        %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        % Create lag space matrix
-        
+        % create sliding window data
+        % d is the window width
         assert(mod(d,2) ~= 0, 'Window length must be an odd number');
-        [m,N] = size(X);
         
-        zero_padding = zeros(m,floor(d/2));
-        X_padded = [zero_padding,X,zero_padding];
+        [m,N]           = size(X);
+        zero_padding    = zeros(m,floor(d/2));
+        X_padded        = [zero_padding,X,zero_padding];
         
         %create zero - one encoding for dice 1-6, row 0 is the special case
         % of 0, which maps to zeros(1,6)
-        diceLookup = [zeros(1,6); eye(6)];
-        
-        nfeatures = size(diceLookup,2);    %number of features pr dice value
+        diceLookup      = [zeros(1,6); eye(6)];
+        nfeatures       = size(diceLookup,2);    %number of features pr dice value
         
         
         windows = zeros(N,d); %number of windows is N because of zero padding
@@ -156,15 +153,5 @@ hold off
         for b =1:N
             nnoutput(b,:) = ylookup(y(b),:);
         end
-        
-        
-    end
-
- function x =  normalize(x)
-    
-    z = sum(x(:));
-    z(z==0) = 1;
-    x = x./z;
-    
     end
 end
