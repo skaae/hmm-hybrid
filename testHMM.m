@@ -1,5 +1,5 @@
 function testHMM()
-%TESTHMM shows how to use hmm functions
+%%TESTHMM shows how to use hmm functions
 % Shows the use of the functions
 % - hmmgenerate (Matlab function)
 % - hmmest   (Estimates A and PI)
