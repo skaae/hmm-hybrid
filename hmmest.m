@@ -20,16 +20,16 @@ function [A,pi] = hmmest(stateSeq,numStates)
 %             Chapter 17
 
 states      = 1:numStates;   %assumes that states are numbered from 1:nstates
-nSeqs       = size(stateSeq,2);
+numSeqs       = size(stateSeq,2);
 
 A_counts    = zeros(numStates,numStates);
 stateCount  = zeros(1,numStates);
-
-for n = 1:nSeqs
+totalCount  = 0;
+for n = 1:numSeqs
     
     sSeq = stateSeq{n};
     L    = length(sSeq);
-    
+    totalCount = totalCount + L;
     %count inital probs
     for s = states
         stateCount(s)  = sum(sSeq == s); % number of init pos in state s
@@ -44,5 +44,7 @@ for n = 1:nSeqs
 end
 pi = (stateCount / sum(stateCount))';
 A = A_counts ./ repmat(sum(A_counts,2),1,numStates);
+
+assert(totalCount == sum(sum(A_counts))+numSeqs,'Count mismatch');
 
 end

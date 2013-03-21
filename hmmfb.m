@@ -1,4 +1,4 @@
-function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
+function [ fwd,bwd,dec] = hmmfb(obsCell,tr,pi,bCell)
 %HMMFB hmm forward - backward algorithm
 % implements the forward backward algorithm. 
 % The forward algorithm calculates the probabilites of having generated the
@@ -16,7 +16,7 @@ function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
 %   or 
 %            : Non-linear signalprocessing lecture notes ex 12
 
-%% FORMULAES
+%% EQUATIONS
 % FORWARD: $$\alpha(y_1^{t},i) = \sum_{j=1}^S \alpha(y_1^{t-1},j) a(i|j)b(y_{t}|i) $$
 % 
 % $$  \alpha(y_1^1,i) = P(x_1=i)b(y_1|i) $$
@@ -27,9 +27,14 @@ function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
 
 
 %% setup variables  + work in logspace
+numSeqs = length(obsCell);
 numStates = size(tr,1);
+
+for n=1:numSeqs
+obs       = obsCell{n};
 L         = length(obs);
 forward   = zeros(numStates,L);   %vector for storing probabilities
+b         = bCell{n};
 
 %% FORWARD ALGORITHM
 forward(:,1) = pi .* b(:,1);
@@ -56,6 +61,11 @@ end
 %% DECODE 
 temp = forward .* backward;
 decode = temp ./ repmat(sum(temp,1),numStates,1);
+
+fwd{n} = forward;
+bwd{n} = backward;
+dec{n} = decode;
+end
     function x =  normalize(x)
     
     z = sum(x(:));
