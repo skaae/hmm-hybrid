@@ -1,4 +1,4 @@
-function res = viterbi(obsCell,tr,pi,b,stateNames)
+function [statePred,logP] = viterbi(obs,tr,pi,b)
 %VITERBI calculates the most probable state path for a sequence.
 % stateSeq = argmax_{z_{t:T}} p(z_{1:T}|obs_{1:T})
 % (MLPP eq. 17.68 p. 612)
@@ -22,52 +22,39 @@ function res = viterbi(obsCell,tr,pi,b,stateNames)
 %  B could be replaced with other probabilisitc models, e.g a Neural
 %  network
 
-
 %%setup variables  + work in logspace
 numStates = size(tr,1);
-numSeqs   = length(obsCell);
 logTR   = log(tr);
 logPI   = log(pi);
+logB    = log(b);
+L       = length(obs);
+logP    = zeros(numStates,L);
+backTrack = zeros(numStates,L);
 
 
-res = {};
-for n = 1:numSeqs
-    logB    = log(b{n});
-    obs     = obsCell{n};
-    L       = length(obs);
-    logP    = zeros(numStates,L);
-    backTrack = zeros(numStates,L);
-    
-    
-    logP(:,1) = logPI + logB(:,1);
-    stateSeq = zeros(1,L);
-    for t = 2:L                  %loop through model
-        for state = 1:numStates  %for each state calc. best value given previous state
-            bestVal = -inf;
-            bestPTR = 0;
-            [val,inner] = max(logP(:,t-1) + logTR(:,state));
-            if val > bestVal
-                bestVal = val;
-                bestPTR = inner;
-            end
-            
-            backTrack(state,t)  = bestPTR;
-            logP(state,t)       = logB(state,t) + bestVal;
+logP(:,1) = logPI + logB(:,1);
+statePred = zeros(1,L);
+for t = 2:L                  %loop through model
+    for state = 1:numStates  %for each state calc. best value given previous state
+        bestVal = -inf;
+        bestPTR = 0;
+        [val,inner] = max(logP(:,t-1) + logTR(:,state));
+        if val > bestVal
+            bestVal = val;
+            bestPTR = inner;
         end
+        
+        backTrack(state,t)  = bestPTR;
+        logP(state,t)       = logB(state,t) + bestVal;
     end
-    
-    % decide which of the final states is post probable
-    [logP, finalState] = max(logP(:,end));
-    
-    % Backtrack
-    stateSeq(L) = finalState;
-    for t = fliplr(1:L-1)
-        stateSeq(t) = backTrack(stateSeq(t+1),t+1);
-    end
-    res{n}.stateSeq = stateSeq;
-    res{n}.namedSeq = stateNames(stateSeq);
-    res{n}.logP     = logP;
-    
 end
 
+% decide which of the final states is post probable
+[logP, finalState] = max(logP(:,end));
+
+% Backtrack
+statePred(L) = finalState;
+for t = fliplr(1:L-1)
+    statePred(t) = backTrack(statePred(t+1),t+1);
+end
 end

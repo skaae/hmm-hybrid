@@ -2,68 +2,104 @@ function testHMM()
 %%TESTHMM shows how to use hmm functions
 % Shows the use of the functions
 % - hmmgenerate (Matlab function)
-% - hmmest   (Estimates A and PI)
-% - hmmfb    (Forward backward algorithm)
-% - viterby  (Find most praobable path)
+% - hmmest      (Estimates A and PI)
+% - hmmfbNN     (Forward backward algorithm  hmm-nn hybrid)
+% - hmmfbEMIS   (Forward backward algorithm  hmm)
+% - viterbiNN   (Find most praobable path hmm-nn hybrid)
+% - viterbiEMIS (Find most praobable path hmm)
 %
 % The data is based on the occasionally dishonest casino examples from
 % durbin et. al. 1998
 
-%% setings
+
+
+
 close all
 
+%% Generate data
 rng('default');rng(0);
-
-%% settings for hmm model and generate data
-epochs  = 500;
+% 
+% %% settings for hmm model and generate data
+epochs          = 50;
+seqLength       = 300;   %printing may if seqLength % 60 != 0
 transition = [.9 .1; 0.05 .95;];
 emission   = [1/6, 1/6, 1/6, 1/6, 1/6, 1/6;...
               1/10, 1/10, 1/10, 1/10, 1/10, 5/10];
 
-pi              = [0.5; 0.5];
 numStates       = 2;
 stateNames      = {'F','L'};
+numObsTypes     = 6;
 d               = 21;                                   %window size for nn
-numSeqs         = 3;
-seqLength       = 500;
+numSeqs         = 1;
+
 for i = 1:numSeqs
     rng(i);
     [o1,s1]         = hmmgenerate(seqLength,transition,emission);
-    obs{i}          = o1;
-    states{i}       = s1;
+    obsSeqs{i}      = o1;
+    stateSeqs{i}    = s1;
 end
-%% training network
-[nninput,nnoutput,X,y] = createNNdata(obs,states,d); %use slideing window to generate data for NN
-nn = trainNN(X,y,epochs);
 
-%% estimate A,B and pi
-B_est              = calcB(nn,nninput,states,numStates);
-[A_est,pi_est]     = hmmest(states,numStates);
+%% Train Neural network
+[nninput,nnoutput,X,y]  = createNNdata(obsSeqs,stateSeqs,d); %use slideing window to generate data for NN
+nnSeqs                  = createNNSeqs(X,stateSeqs);
+nn                      = trainNN(X,y,epochs);
 
+
+
+%% estimate A,B and pi and create HMM model
+[A_est,B_est,pi_est]          = hmmest(obsSeqs,stateSeqs,numStates,numObsTypes);
+
+%create HMM model
+hmm.A           = A_est;
+hmm.B           = B_est;
+hmm.pi          = pi_est;
+hmm.nn          = nn;
+hmm.stateNames  = stateNames;
+hmm.numStates   = numStates;
 
 
 %% Inference in HMM
 % Viterbi calculates the most likely path given the observaations
 % The forward backward algorithm calculates P(state_t = i|obs_{1:t})
-path                      = viterbi(obs, A_est,pi_est,B_est,stateNames);
-[forward,backward,decode] = hmmfb(obs, A_est,pi_est,B_est);
+pathNN                    = viterbiNN(hmm,obsSeqs,stateSeqs,nnSeqs);
+pathEMIS                  = viterbiEMIS(hmm,obsSeqs);
 
-
-
-
+probsNN                   = hmmfbNN(hmm,obsSeqs,stateSeqs,nnSeqs);
+probsEMIS                 = hmmfbEMIS(hmm,obsSeqs);
 
 %% create simple plots
-viterbiErr = zeros(1,numSeqs);
+viterbiNNErr    = zeros(1,numSeqs);
+viterbiEMISErr  = zeros(1,numSeqs);
 fs = 14;
+lineLength = 60;
 for c=1:numSeqs
-    viterbiErr(c)  = sum(path{c}.stateSeq ~= states{c});
     
+    s = stateSeqs{c};
+    rollLabel = num2str(obsSeqs{c});
+    rollLabel(rollLabel == ' ') = [];
+    
+    
+    dielabel = repmat('F',size(rollLabel));
+    dielabel(s == 2) = 'L';
+    fprintf('\n####### Viterbi predcitions######### \n')
+    for i=1:lineLength:seqLength
+       
+        fprintf('Rolls          : %s\n',rollLabel(i:i+lineLength-1));
+        fprintf('Die            : %s\n',dielabel(i:i+lineLength-1));
+        fprintf('ViterbiNN      : %s\n',cell2mat(pathNN{c}.namedStates(i:i+lineLength-1)));
+        fprintf('ViterbiEMIS    : %s\n\n',cell2mat(pathEMIS{c}.namedStates(i:i+lineLength-1)));
+        
+        
+    end
+    
+    viterbiNNErr(c)   = sum(pathNN{c}.states    ~= stateSeqs{c});
+    viterbiEMISErr(c) = sum(pathEMIS{c}.states  ~= stateSeqs{c});
     
     figure();
     hold on
-    area(states{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));  %true path in grey
-    plot(path{c}.stateSeq-1)                                                      %plot viterbi prdictions
-    viterbi_title = sprintf('Viterbi prediction Sequnce %d',c);
+    area(stateSeqs{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));  %true path in grey
+    plot(pathNN{c}.states-1)                                                      %plot viterbi prdictions
+    viterbi_title = sprintf('ViterbiNN prediction Sequnce %d',c);
     title(viterbi_title,'FontSize',16,'fontWeight','bold');
     xlabel('t','FontSize',fs,'fontWeight','bold')
     ylabel('prediction','FontSize',fs,'fontWeight','bold')
@@ -71,58 +107,50 @@ for c=1:numSeqs
     
     figure();
     hold on
-    area(states{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));
-    dec = decode{c};
+    area(stateSeqs{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));
+    dec = probsNN{c}.decode;
     plot(dec(1,:))
-    decode_title = sprintf('forward-backward algorithm Sequnce %d',c);
+    decode_title = sprintf('hmmfbNN algorithm Sequnce %d',c);
+    title(decode_title,'FontSize',16,'fontWeight','bold')
+    ylabel('P(state_{t} = fair | obs_{1:t})','FontSize',fs,'fontWeight','bold');
+    xlabel('t','FontSize',fs,'fontWeight','bold');
+    hold off
+    
+     figure();
+    hold on
+    area(stateSeqs{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));  %true path in grey
+    plot(pathEMIS{c}.states-1)                                                      %plot viterbi prdictions
+    viterbi_title = sprintf('ViterbiEMIS prediction Sequnce %d',c);
+    title(viterbi_title,'FontSize',16,'fontWeight','bold');
+    xlabel('t','FontSize',fs,'fontWeight','bold')
+    ylabel('prediction','FontSize',fs,'fontWeight','bold')
+    hold off
+    
+    figure();
+    hold on
+    area(stateSeqs{c}-1,'FaceColor',0.75*ones(1,3),'EdgeColor',ones(1,3));
+    dec = probsEMIS{c}.decode;
+    plot(dec(1,:))
+    decode_title = sprintf('hmmfbEMIS algorithm Sequnce %d',c);
     title(decode_title,'FontSize',16,'fontWeight','bold')
     ylabel('P(state_{t} = fair | obs_{1:t})','FontSize',fs,'fontWeight','bold');
     xlabel('t','FontSize',fs,'fontWeight','bold');
     hold off
 end
-disp('Viterbi error:')
-disp(viterbiErr)
 
-    function B = calcB(nn,nninput,statesCell,numStates)
-        % In HMM this should be P(obs | state), but we use a Neural
-        % Networks which outputs P(State | obs), sort of uses bayes to
-        % resolve this...
+fprintf('ViterbiNN error    : %s\n',mat2str(viterbiNNErr));
+fprintf('ViterbiEMIS error  : %s\n',mat2str(viterbiEMISErr));
+
+
+    function nnSeqs = createNNSeqs(X,stateSeqs)
         
-        %Get predictions from network
-        numSeqs = length(nninput);
-        
-        for s = 1:numSeqs
-            data = nninput{s};
-            nn.testing = 1;
-            nn = nnff(nn, data, zeros(size(data,1), nn.size(end)));
-            nn.testing = 0;
-            nnpred{s} = nn.a{end}';
+        numSeqs = length(stateSeqs);
+            rowStart = 0
+        for i=1:numSeqs
+            rowEnd = rowStart+size(stateSeqs{i},2);
+            nnSeqs{i} = X(rowStart+1:rowEnd,:);
+            rowStart = rowEnd;
         end
-        
-        %counts priors
-        % using p(o|s) = p(s|o)p(o) / p(s)
-        % for somereason we can disregard p(o) ??
-        
-        statePrior = zeros(1,numStates);
-        L = 0;
-        for i = 1:numSeqs
-            stateSeq = statesCell{i};
-            L  = L+length(stateSeq);            %number of state
-            
-            for n = 1:numStates
-                statePrior(n) = sum(stateSeq == n);
-            end
-            for n=1:numStates
-                statePrior(n) = statePrior(n) ./ L;
-                np = nnpred{i};
-                np(n,:) = np(n,:) ./ statePrior(n);
-                
-            end
-            B{i} = np ./ repmat(sum(np,1),size(np,1),1);
-        end
-        
-        
-        
     end
 
     function  nn = trainNN(X,y,epochs)

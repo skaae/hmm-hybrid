@@ -1,4 +1,4 @@
-function [A,pi] = hmmest(stateSeq,numStates)
+function [A,B,pi] = hmmest(obsSeqs,stateSeqs,numStates,numObsTypes)
 %%HMMEST computes MLE estimates for A and pi
 %
 %  statesSeq is a cellArray of state sequences, can be different lengths
@@ -18,33 +18,56 @@ function [A,pi] = hmmest(stateSeq,numStates)
 %   reference: Machine Learning: A probabilistic Perspective
 %             Kevin P. Murphy
 %             Chapter 17
-
-states      = 1:numStates;   %assumes that states are numbered from 1:nstates
-numSeqs       = size(stateSeq,2);
-
-A_counts    = zeros(numStates,numStates);
-stateCount  = zeros(1,numStates);
+numSeqs     = length(stateSeqs);
 totalCount  = 0;
+
+pi = zeros(numStates,1);
+A  = zeros(numStates,numStates);
+B  = zeros(numStates,numObsTypes);
+
 for n = 1:numSeqs
     
-    sSeq = stateSeq{n};
-    L    = length(sSeq);
-    totalCount = totalCount + L;
-    %count inital probs
-    for s = states
-        stateCount(s)  = sum(sSeq == s); % number of init pos in state s
-    end
     
-    % count transistions
-    for t=1:L-1
-        i                = sSeq(t);
-        j                = sSeq(t+1);
-        A_counts(i,j)    = A_counts(i,j) + 1;
-    end
+    states                  = stateSeqs{n};
+    obs                     = obsSeqs{n};
+    L                       = length(states);
+    totalCount              = totalCount + L;
+    
+    [Acount,Bcount,piCount] = counts(obs,states,L,numStates,numObsTypes); 
+    A                       = A + Acount;
+    B                       = B + Bcount;  
+    pi                      = pi + piCount;
 end
-pi = (stateCount / sum(stateCount))';
-A = A_counts ./ repmat(sum(A_counts,2),1,numStates);
 
-assert(totalCount == sum(sum(A_counts))+numSeqs,'Count mismatch');
+assert(totalCount   == sum(sum(A))+numSeqs,   'Count mismatch A');
+assert(totalCount   == sum(sum(B)),           'Count mismatch B');
+assert(numSeqs      == sum(pi),               'Count mismatch pi');
+
+pi = pi ./ sum(pi);
+A = A   ./ repmat(sum(A,2),1,numStates);
+B = B   ./ repmat(sum(B,2),1,numObsTypes);
+
+
+    function [Acount,Bcount,piCount] = counts(obs,states,L,numStates,numObsTypes)
+        Acount   = zeros(numStates,numStates);
+        piCount  = zeros(numStates,1);
+        Bcount   = zeros(numStates,numObsTypes);
+        
+        for s = 1:numStates
+            piCount(s)  = sum(states(:,1) == s);
+        end
+        
+        for t=1:L-1
+            i                = states(t);
+            j                = states(t+1);
+            Acount(i,j)      = Acount(i,j) + 1;
+        end
+        
+        for t = 1:L
+            j                = obs(t);
+            i                = states(t);
+            Bcount(i,j)      = Bcount(i,j) + 1;
+        end
+    end
 
 end

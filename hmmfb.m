@@ -1,4 +1,4 @@
-function [ fwd,bwd,dec] = hmmfb(obsCell,tr,pi,bCell)
+function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
 %HMMFB hmm forward - backward algorithm
 % implements the forward backward algorithm. 
 % The forward algorithm calculates the probabilites of having generated the
@@ -27,45 +27,32 @@ function [ fwd,bwd,dec] = hmmfb(obsCell,tr,pi,bCell)
 
 
 %% setup variables  + work in logspace
-numSeqs = length(obsCell);
-numStates = size(tr,1);
-
-for n=1:numSeqs
-obs       = obsCell{n};
+numStates = length(tr);
 L         = length(obs);
 forward   = zeros(numStates,L);   %vector for storing probabilities
-b         = bCell{n};
+
 
 %% FORWARD ALGORITHM
 forward(:,1) = pi .* b(:,1);
-
 for t = 2:L                     %loop through model
     for state = 1:numStates     %for each state calc. best value given previous sequence probs
         val                 = sum(forward(:,t-1).*tr(:,state));
         forward(state,t)    =  b(state,t) .* val; 
     end
-    %normalize
-    forward(:,t) =  normalize(forward(:,t));
+    forward(:,t) =  normalize(forward(:,t));    %normalize
 end
-
-
 
 %% BACKWARD ALGORITHM
 backward        = zeros(numStates,L); 
 backward(:,L)   = ones(numStates,1);
 for t = fliplr(1:L-1)
         backward(:,t)   = normalize(tr * (backward(:,t+1) .* b(:,t+1)));
-   % backward(:,t) =  backward(:,t) ./ repmat(sum(backward(:,t)),numStates,1);
 end
 
 %% DECODE 
 temp = forward .* backward;
 decode = temp ./ repmat(sum(temp,1),numStates,1);
 
-fwd{n} = forward;
-bwd{n} = backward;
-dec{n} = decode;
-end
     function x =  normalize(x)
     
     z = sum(x(:));
