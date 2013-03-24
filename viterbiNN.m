@@ -5,7 +5,7 @@ function [ path ] = viterbiNN(hmm,data)
 numSeqs = length(data);
 path = cell(1,numSeqs);
 for i = 1:numSeqs  
-    B_nn  = emisNN(hmm.nn,       ...  % nn for predicting "emissions"
+    B_nn  = hmmemisNN(hmm.nn,       ...  % nn for predicting "emissions"
                 data(i).nninput, ...  % input to nn
                 hmm.statePrior);      % priors on each state
     [states,logP]   = viterbi(data(i).obs, hmm.A, hmm.pi, B_nn);

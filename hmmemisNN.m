@@ -1,4 +1,5 @@
-function B = emisNN(nn,nninput,statePrior)
+function B = hmmemisNN(nn,nninput,statePrior)
+%HMMEMISNN generate emission probabilities for hmm using NN
 % In HMM this should be P(obs | state), but we use a Neural
 % Networks which outputs P(State | obs), sort of uses bayes to
 % resolve this...
