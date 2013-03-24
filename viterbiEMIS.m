@@ -9,7 +9,7 @@ for i = 1:numSeqs
     
     path{i}.states      = states;
     path{i}.logP        = logP;
-    path{i}.namedStates = hmm.stateNames(states);
+    path{i}.namedStates = cell2mat(hmm.stateNames(states));
 end
 
 end

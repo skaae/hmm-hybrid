@@ -25,9 +25,7 @@ pi = zeros(numStates,1);
 A  = zeros(numStates,numStates);
 B  = zeros(numStates,numObsTypes);
 
-for n = 1:numSeqs
-    
-    
+for n = 1:numSeqs  
     states                  = stateSeqs{n};
     obs                     = obsSeqs{n};
     L                       = length(states);
