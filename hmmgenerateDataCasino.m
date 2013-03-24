@@ -1,4 +1,4 @@
-function [data,nninall,nnoutall] = hmmgenerateDataCasino(numSeqs,seqLength,windowLength,A,B)
+function [data,nninall,nnoutall] = hmmgeneratedatacasino(numSeqs,seqLength,windowLength,A,B)
 numStates = length(A);
 stateNames      = {'G','P','B'};
 annoNames       = {'a','b','c','d','e','f'};
