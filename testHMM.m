@@ -7,7 +7,7 @@ function testHMM()
 % - hmmfbEMIS   (Forward backward algorithm  hmm)
 % - viterbiNN   (Find most praobable path hmm-nn hybrid)
 % - viterbiEMIS (Find most praobable path hmm)
-%
+% - hmmplot
 % The data is based on the occasionally dishonest casino examples from
 % durbin et. al. 1998
 
@@ -37,13 +37,13 @@ numSeqs_val     = 10;
 numSeqs_test    = 3;
 
 %% generate training, validation and test data
-[data_train,nnin_train,nnout_train] = generateDataCasino(...
+[data_train,nnin_train,nnout_train] = hmmgenerateDataCasino(...
     numSeqs_train,seqLength,windowLength,transition,emission);
 
-[~,nnin_val,nnout_val] = generateDataCasino(...
+[~,nnin_val,nnout_val] = hmmgenerateDataCasino(...
     numSeqs_val,seqLength,windowLength,transition,emission);
 
-[data_test,~,~] = generateDataCasino(...
+[data_test,~,~] = hmmgenerateDataCasino(...
     numSeqs_test,seqLength,windowLength,transition,emission);
 
 
@@ -83,9 +83,6 @@ clear A_est B_est pi_est nn data_train statePrior
 
 
 %generate test data
-
-
-
 %% Inference in HMM
 % Viterbi calculates the most likely path given the observaations
 % The forward backward algorithm calculates P(state_t = i|obs_{1:t})
@@ -107,6 +104,6 @@ colorBck = [179, 226, 205;
     203, 213, 232] ./ 255;
 
 colorLines = [27, 158, 119; 217, 95, 2; 117, 112, 179;]./255;
-plotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN,... %infered paths
+hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN,... %infered paths
           data_test ,stateNames,numStates,colorBck, colorLines)
 end

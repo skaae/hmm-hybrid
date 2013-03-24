@@ -7,7 +7,7 @@ probs = cell(1,numSeqs);
 for i = 1:numSeqs
     
     
-    B_nn  = emisNN(hmm.nn,       ...  % nn for predicting "emissions"
+    B_nn  = hmmemisNN(hmm.nn,       ...  % nn for predicting "emissions"
                 data(i).nninput, ...  % input to nn
                 hmm.statePrior);
     

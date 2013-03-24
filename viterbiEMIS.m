@@ -1,7 +1,5 @@
 function [ path ] = viterbiEMIS(hmm,data)
 %VITERBIEMIS viterbi with emission matrix
-  
-
 numSeqs = length(data);
 path = cell(1,numSeqs);
 for i = 1:numSeqs
