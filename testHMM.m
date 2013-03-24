@@ -18,7 +18,7 @@ rng('default');rng(0);
 %
 % %% settings for hmm model and generate data
 epochs          = 30;
-seqLength       = 180;   %printing may if seqLength % 60 != 0
+seqLength       = 210;   %printing may if seqLength % 70 != 0
 transition = [.95 .025 .025;...
     .01 .95 .04;
     .04 .01 .95];
@@ -28,13 +28,14 @@ emission   = [1/60, 1/60, 1/60, 1/60, 1/60, 1/60;...
 
 numStates       = 3;
 stateNames      = {'G','P','B'};
+obsNames        = {'1','2','3','4','5','6'};
 numObsTypes     = 6;
 windowLength    = 11;                                
 
 numPlots        = [1,3];   %sequences to plot i.e plots seq 1 and 3
 numSeqs_train   = 25;
 numSeqs_val     = 10;
-numSeqs_test    = 3;
+numSeqs_test    = 5;
 
 %% generate training, validation and test data
 [data_train,nnin_train,nnout_train] = hmmgenerateDataCasino(...
@@ -140,5 +141,5 @@ colorBck = [179, 226, 205;
 
 colorLines = [27, 158, 119; 217, 95, 2; 117, 112, 179;]./255;
 hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN,... %infered paths
-          data_test ,stateNames,numStates,numPlots,colorBck, colorLines)
+          data_test, obsNames ,stateNames,numStates,numPlots,colorBck, colorLines)
 end

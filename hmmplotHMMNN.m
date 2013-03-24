@@ -1,18 +1,17 @@
-function hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,stateNames,numStates,numPlots,colorBck, colorLines)
+function hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,obsNames,stateNames,numStates,numPlots,colorBck, colorLines)
 %hmmplotHMMNN Summary of this function goes here
 %   Detailed explanation goes here
 numSeqs = length(data);
 seqLength = length(data(1).obs);
 
 fs = 14;
-lineLength = 60;
+lineLength = 70;
 legendPrefix = 'True state: ';
 
 
 for c=numPlots
     fprintf('\n\n------------------SEQUENCE %i-----------------------------\n',c);
-    obs                 = vect2str(data(c).obs,'formatstring','%i', ...
-          'openingDelimiter','','closingDelimiter','','separator','');
+    obs                 = cell2mat(obsNames(data(c).obs));
     true_stat_names     = cell2mat(stateNames(data(c).states));
     pstat_HMMNN_names   = pathHMMNN{c}.namedStates;
     pstat_HMM_names     = pathHMM{c}.namedStates;
@@ -24,7 +23,7 @@ for c=numPlots
         fprintf('observation        : %s\n'   ,obs(i:i+lineLength-1));
         fprintf('true state         : %s\n'   ,true_stat_names(i:i+lineLength-1));
         fprintf('Viterbi (HMM-NN)   : %s\n'   ,pstat_HMMNN_names(i:i+lineLength-1));
-        fprintf('Viterbi (HMM)      : %s\n' ,pstat_HMM_names(i:i+lineLength-1));
+        fprintf('Viterbi (HMM)      : %s\n'   ,pstat_HMM_names(i:i+lineLength-1));
         fprintf('Viterbi (NN)       : %s\n\n' ,pstat_NN_names(i:i+lineLength-1));
         
         
