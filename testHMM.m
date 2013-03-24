@@ -31,7 +31,7 @@ stateNames      = {'G','P','B'};
 numObsTypes     = 6;
 windowLength    = 11;                                
 
-
+numPlots        = [1,3];   %sequences to plot i.e plots seq 1 and 3
 numSeqs_train   = 25;
 numSeqs_val     = 10;
 numSeqs_test    = 3;
@@ -140,5 +140,5 @@ colorBck = [179, 226, 205;
 
 colorLines = [27, 158, 119; 217, 95, 2; 117, 112, 179;]./255;
 hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN,... %infered paths
-          data_test ,stateNames,numStates,colorBck, colorLines)
+          data_test ,stateNames,numStates,numPlots,colorBck, colorLines)
 end

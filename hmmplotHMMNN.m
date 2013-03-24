@@ -1,4 +1,4 @@
-function hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,stateNames,numStates,colorBck, colorLines)
+function hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,stateNames,numStates,numPlots,colorBck, colorLines)
 %hmmplotHMMNN Summary of this function goes here
 %   Detailed explanation goes here
 numSeqs = length(data);
@@ -9,7 +9,7 @@ lineLength = 60;
 legendPrefix = 'True state: ';
 
 
-for c=1:numSeqs
+for c=numPlots
     fprintf('\n\n------------------SEQUENCE %i-----------------------------\n',c);
     obs                 = vect2str(data(c).obs,'formatstring','%i', ...
           'openingDelimiter','','closingDelimiter','','separator','');
