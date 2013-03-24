@@ -1,5 +1,5 @@
-function plotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,stateNames,numStates,colorBck, colorLines)
-%plotHMMNN Summary of this function goes here
+function hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN, data,stateNames,numStates,colorBck, colorLines)
+%hmmplotHMMNN Summary of this function goes here
 %   Detailed explanation goes here
 numSeqs = length(data);
 seqLength = length(data(1).obs);
