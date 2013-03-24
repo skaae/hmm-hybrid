@@ -21,8 +21,8 @@ for c=1:numSeqs
 
     for i=1:lineLength:seqLength
         
-        fprintf('Rolls              : %s\n'   ,obs(i:i+lineLength-1));
-        fprintf('Die                : %s\n'   ,true_stat_names(i:i+lineLength-1));
+        fprintf('observation        : %s\n'   ,obs(i:i+lineLength-1));
+        fprintf('true state         : %s\n'   ,true_stat_names(i:i+lineLength-1));
         fprintf('Viterbi (HMM-NN)   : %s\n'   ,pstat_HMMNN_names(i:i+lineLength-1));
         fprintf('Viterbi (HMM)      : %s\n' ,pstat_HMM_names(i:i+lineLength-1));
         fprintf('Viterbi (NN)       : %s\n\n' ,pstat_NN_names(i:i+lineLength-1));
@@ -49,7 +49,7 @@ for c=1:numSeqs
     set(gca,'YLim',[0,numStates])
     
     legendNames = cell(1,numStates+1);
-    
+    legendPrefix = 'True State: ';
     for i = 1:numStates
         st = [legendPrefix,stateNames{i}];
         legendNames{1,i} = st;
@@ -79,6 +79,7 @@ for c=1:numSeqs
     set(gca,'XLim',[0 seqLength])
     set(gca,'YLim',[0,1])
     legendNames = cell(1,2*numStates);
+    legendPrefix = 'True State: ';
     for i = 1:numStates
         st = [legendPrefix,stateNames{i}];
         legendNames{1,i} = st;
