@@ -1,8 +1,9 @@
 function corr = hmmmatthew(path, data,numStates)
 %HMMconfmat calculates the confusion matrix
+mat = zeros(2,2,numStates);
 for i = 1:length(path)  % iterate over states
     
-    mat = zeros(2,2,numStates);
+    
     for target_class = 1:numStates    % testing: set to four
         %create binary vectors for each class. For each class (target_class)
         % match the predition with target class and the expected class with the
