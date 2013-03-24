@@ -12,7 +12,7 @@ for i = 1:numSeqs
                 hmm.statePrior);
     
     
-    [forward,backward,decode]= hmmfb(data(i).obs, hmm.A, hmm.pi, B_nn);
+    [forward,backward,decode]= hmmfb(hmm.A, hmm.pi, B_nn);
         
     probs{i}.forward     = forward;
     probs{i}.backward    = backward;

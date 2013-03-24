@@ -3,11 +3,12 @@ function [ probs ] = hmmfbEMIS(hmm,data)
 %   Uses a neural network to predict "emission" probabilities in the hmm.  
 
 numSeqs = length(data);
+probs = cell(1,numSeqs);
 for i = 1:numSeqs
     
     % check why i need to normalize
     B_emis                    = hmm.B(:,data(i).obs);
-    [forward,backward,decode] = hmmfb(data(i).obs, hmm.A, hmm.pi, B_emis);
+    [forward,backward,decode] = hmmfb(hmm.A, hmm.pi, B_emis);
         
     probs{i}.forward     = forward;
     probs{i}.backward    = backward;

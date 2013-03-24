@@ -29,8 +29,8 @@ for c=1:numSeqs
         fprintf('Rolls              : %s\n'   ,obs(i:i+lineLength-1));
         fprintf('Die                : %s\n'   ,true_stat_names(i:i+lineLength-1));
         fprintf('Viterbi (HMM-NN)   : %s\n'   ,pstat_HMMNN_names(i:i+lineLength-1));
-        fprintf('ViterbiEMIS (HMM)  : %s\n' ,pstat_HMM_names(i:i+lineLength-1));
-        fprintf('ViterbiEMIS (NN)   : %s\n\n' ,pstat_NN_names(i:i+lineLength-1));
+        fprintf('Viterbi (HMM)      : %s\n' ,pstat_HMM_names(i:i+lineLength-1));
+        fprintf('Viterbi (NN)       : %s\n\n' ,pstat_NN_names(i:i+lineLength-1));
         
         
     end

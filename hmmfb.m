@@ -1,4 +1,4 @@
-function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
+function [ forward,backward,decode] = hmmfb(tr,pi,b)
 %HMMFB hmm forward - backward algorithm
 % implements the forward backward algorithm. 
 % The forward algorithm calculates the probabilites of having generated the
@@ -28,11 +28,15 @@ function [ forward,backward,decode] = hmmfb(obs,tr,pi,b)
 
 %% setup variables  + work in logspace
 numStates = length(tr);
-L         = length(obs);
+L         = length(b);
 forward   = zeros(numStates,L);   %vector for storing probabilities
 
 
 %% FORWARD ALGORITHM
+
+
+
+
 forward(:,1) = pi .* b(:,1);
 for t = 2:L                     %loop through model
     for state = 1:numStates     %for each state calc. best value given previous sequence probs
@@ -53,11 +57,4 @@ end
 temp = forward .* backward;
 decode = temp ./ repmat(sum(temp,1),numStates,1);
 
-    function x =  normalize(x)
-    
-    z = sum(x(:));
-    z(z==0) = 1;
-    x = x./z;
-    
-    end
 end

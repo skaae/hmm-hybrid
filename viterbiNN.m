@@ -8,7 +8,7 @@ for i = 1:numSeqs
     B_nn  = hmmemisNN(hmm.nn,       ...  % nn for predicting "emissions"
                 data(i).nninput, ...  % input to nn
                 hmm.statePrior);      % priors on each state
-    [states,logP]   = viterbi(data(i).obs, hmm.A, hmm.pi, B_nn);
+    [states,logP]   = viterbi(hmm.A, hmm.pi, B_nn);
     
     path{i}.states      = states;
     path{i}.logP        = logP;
