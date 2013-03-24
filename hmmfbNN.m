@@ -1,13 +1,18 @@
-function [ probs ] = hmmfbNN(hmm,obsSeqs,stateSeqs,nnSeqs)
+function [ probs ] = hmmfbNN(hmm,data)
 %HMMFBNN forward-backward with hmm-nn hybrid
 %   Uses a neural network to predict "emission" probabilities in the hmm.  
 
-numSeqs = length(obsSeqs);
+numSeqs = length(data);
+probs = cell(1,numSeqs);
 for i = 1:numSeqs
     
     
-    B_nn = emisNN(hmm.nn, nnSeqs{i}, stateSeqs{i}, hmm.numStates);
-    [forward,backward,decode]= hmmfb(obsSeqs{i}, hmm.A, hmm.pi, B_nn);
+    B_nn  = emisNN(hmm.nn,       ...  % nn for predicting "emissions"
+                data(i).nninput, ...  % input to nn
+                hmm.statePrior);
+    
+    
+    [forward,backward,decode]= hmmfb(data(i).obs, hmm.A, hmm.pi, B_nn);
         
     probs{i}.forward     = forward;
     probs{i}.backward    = backward;

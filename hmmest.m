@@ -1,4 +1,4 @@
-function [A,B,pi] = hmmest(obsSeqs,stateSeqs,numStates,numObsTypes)
+function [A,B,pi,statePrior] = hmmest(data,numStates,numObsTypes)
 %%HMMEST computes MLE estimates for A and pi
 %
 %  statesSeq is a cellArray of state sequences, can be different lengths
@@ -18,41 +18,47 @@ function [A,B,pi] = hmmest(obsSeqs,stateSeqs,numStates,numObsTypes)
 %   reference: Machine Learning: A probabilistic Perspective
 %             Kevin P. Murphy
 %             Chapter 17
-numSeqs     = length(stateSeqs);
+numSeqs     = length(data);
 totalCount  = 0;
 
-pi = zeros(numStates,1);
-A  = zeros(numStates,numStates);
-B  = zeros(numStates,numObsTypes);
+pi          = zeros(numStates,1);
+A           = zeros(numStates,numStates);
+B           = zeros(numStates,numObsTypes);
+statePrior  = zeros(numStates,1);
 
 for n = 1:numSeqs  
-    states                  = stateSeqs{n};
-    obs                     = obsSeqs{n};
+    states                  = data(n).states;
+    obs                     = data(n).obs;
     L                       = length(states);
     totalCount              = totalCount + L;
     
-    [Acount,Bcount,piCount] = counts(obs,states,L,numStates,numObsTypes); 
+    [Acount,Bcount,piCount,stateCount] = counts(obs,states,L,numStates,numObsTypes); 
     A                       = A + Acount;
     B                       = B + Bcount;  
     pi                      = pi + piCount;
+    statePrior              = statePrior + stateCount;
 end
 
-assert(totalCount   == sum(sum(A))+numSeqs,   'Count mismatch A');
-assert(totalCount   == sum(sum(B)),           'Count mismatch B');
-assert(numSeqs      == sum(pi),               'Count mismatch pi');
+assert(totalCount       == sum(sum(A))+numSeqs,'Count mismatch A');
+assert(totalCount       == sum(sum(B)),        'Count mismatch B');
+assert(numSeqs          == sum(pi),            'Count mismatch pi');
+assert(sum(statePrior)  == totalCount,         'State prior mismatch'); 
 
-pi = pi ./ sum(pi);
-A = A   ./ repmat(sum(A,2),1,numStates);
-B = B   ./ repmat(sum(B,2),1,numObsTypes);
+pi = pi     ./ sum(pi);
+A = A       ./ repmat(sum(A,2),1,numStates);
+B = B       ./ repmat(sum(B,2),1,numObsTypes);
+statePrior = statePrior  ./ totalCount;
 
-
-    function [Acount,Bcount,piCount] = counts(obs,states,L,numStates,numObsTypes)
-        Acount   = zeros(numStates,numStates);
-        piCount  = zeros(numStates,1);
-        Bcount   = zeros(numStates,numObsTypes);
+    function [Acount,Bcount,piCount,stateCount] = counts(obs,states,L,numStates,numObsTypes)
+        Acount      = zeros(numStates,numStates);
+        piCount     = zeros(numStates,1);
+        Bcount      = zeros(numStates,numObsTypes);
+        stateCount  = zeros(numStates,1);
+        
         
         for s = 1:numStates
-            piCount(s)  = sum(states(:,1) == s);
+            piCount(s)      = sum(states(:,1) == s);
+            stateCount(s)   = sum(states == s);
         end
         
         for t=1:L-1
