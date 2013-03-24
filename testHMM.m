@@ -91,14 +91,49 @@ pathHMM      = viterbiEMIS(hmm,data_test);
 
 pathNN = cell(1,numSeqs_test);
 for i = 1:numSeqs_test
-    pathNN{i}       = nnpredict(hmm.nn,data_test(i).nninput)';
+    pathNN{i}.states       = nnpredict(hmm.nn,data_test(i).nninput)';
 end
-
 probsHMMNN   = hmmfbNN(hmm,data_test);
 probsHMM     = hmmfbEMIS(hmm,data_test);
 
-%% create simple plots
 
+%% calculate matthew correlation
+matthewHMMNN = hmmmatthew(pathHMMNN, data_test,numStates);
+matthewHMM   = hmmmatthew(pathHMM, data_test,numStates);
+matthewNN    = hmmmatthew(pathNN, data_test,numStates);
+
+fprintf('\n  MATTHEW CORRELATIONS \n');
+classstr ='class      ';
+mHMMNN  = 'HMMNN    : '; 
+mHMM    = 'HMM      : '; 
+mNN     = 'NN       : ';
+f = '%1.3f';
+for i = 1:numStates
+   mHMMNN   =  [mHMMNN num2str(matthewHMMNN(i).mcc,f) '\t'];
+   mHMM     =  [mHMM num2str(matthewHMM(i).mcc,f) '\t'];
+   mNN      =  [mNN num2str(matthewNN(i).mcc,f) '\t'];
+   classstr =  [classstr,['   ',stateNames{i},'   ' '\t']];
+end
+
+fprintf([classstr '\n' ...
+         mHMMNN   '\n' ...
+         mHMM     '\n' ...
+         mNN      '\n']);
+%% viterbi errors
+    vHMMNN = 0; vHMM = 0; vNN = 0;
+    for c = 1:numSeqs_test
+        vHMMNN = vHMMNN + sum(pathHMMNN{c}.states ~= data_test(c).states);
+        vHMM   = vHMM   + sum(pathHMM{c}.states   ~= data_test(c).states);
+        vNN    = vNN    + sum(pathNN{c}.states     ~= data_test(c).states);
+    end
+    
+    fprintf('\n     VITERBI PREDICTIONS\n');
+    fprintf('Viterbi HMM-NN error    : %d\n',vHMMNN);
+    fprintf('Viterbi HMM error       : %d\n',vHMM);
+    fprintf('Viterbi NN error        : %d\n\n',vNN);
+
+
+%% create simple plots
 colorBck = [179, 226, 205;
     253, 205, 172;
     203, 213, 232] ./ 255;

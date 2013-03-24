@@ -10,20 +10,15 @@ legendPrefix = 'True state: ';
 
 
 for c=1:numSeqs
+    fprintf('\n\n------------------SEQUENCE %i-----------------------------\n',c);
     obs                 = vect2str(data(c).obs,'formatstring','%i', ...
           'openingDelimiter','','closingDelimiter','','separator','');
     true_stat_names     = cell2mat(stateNames(data(c).states));
     pstat_HMMNN_names   = pathHMMNN{c}.namedStates;
     pstat_HMM_names     = pathHMM{c}.namedStates;
-    pstat_NN_names      = cell2mat(stateNames(pathNN{c}));
+    pstat_NN_names      = cell2mat(stateNames(pathNN{c}.states));
     
 
-    
-    fprintf('\n####### Viterbi predcitions######### \n')
-    
-    fprintf('Viterbi HMM-NN error    : %d\n',sum(pathHMMNN{c}.states ~= data(c).states));
-    fprintf('Viterbi HMM error       : %d\n',sum(pathHMM{c}.states   ~= data(c).states));
-    fprintf('Viterbi NN error        : %d\n\n',sum(pathNN{c}         ~= data(c).states));
     for i=1:lineLength:seqLength
         
         fprintf('Rolls              : %s\n'   ,obs(i:i+lineLength-1));
