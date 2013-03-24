@@ -86,8 +86,8 @@ clear A_est B_est pi_est nn data_train statePrior
 %% Inference in HMM
 % Viterbi calculates the most likely path given the observaations
 % The forward backward algorithm calculates P(state_t = i|obs_{1:t})
-pathHMMNN    = viterbiNN(hmm,data_test);
-pathHMM      = viterbiEMIS(hmm,data_test);
+pathHMMNN    = hmmviterbiNN(hmm,data_test);
+pathHMM      = hmmviterbiEMIS(hmm,data_test);
 
 pathNN = cell(1,numSeqs_test);
 for i = 1:numSeqs_test

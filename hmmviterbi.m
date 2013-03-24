@@ -1,4 +1,4 @@
-function [statePred,logP] = viterbi(tr,pi,b)
+function [statePred,logP] = hmmviterbi(tr,pi,b)
 %VITERBI calculates the most probable state path for a sequence.
 % stateSeq = argmax_{z_{t:T}} p(z_{1:T}|obs_{1:T})
 % (MLPP eq. 17.68 p. 612)

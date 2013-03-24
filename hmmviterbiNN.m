@@ -1,4 +1,4 @@
-function [ path ] = viterbiNN(hmm,data)
+function [ path ] = hmmviterbiNN(hmm,data)
 %VITERBINN viterbi with hmm-nn hybrid
 %   Uses a neural network to predict "emission" probabilities in the hmm.  
 
@@ -9,7 +9,7 @@ for i = 1:numSeqs
     B_nn  = hmmemisNN(hmm.nn,       ...  % nn for predicting "emissions"
                 data(i).nninput, ...  % input to nn
                 hmm.statePrior);      % priors on each state
-    [states,logP]   = viterbi(hmm.A, hmm.pi, B_nn);
+    [states,logP]   = hmmviterbi(hmm.A, hmm.pi, B_nn);
     
     path{i}.states      = states;
     path{i}.logP        = logP;
