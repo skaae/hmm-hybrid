@@ -21,7 +21,7 @@ doPlots = 1;   %if probs should be plotted in figures
 
 
 epochs          = 30;
-seqLength       = 210;   %printing may if seqLength % 70 != 0
+seqLength       = 220;   %printing may if seqLength % 70 != 0
 transition = [.95 .025 .025;...
     .01 .95 .04;
     .04 .01 .95];

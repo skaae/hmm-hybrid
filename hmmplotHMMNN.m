@@ -9,13 +9,25 @@ lineLength = 70;
 legendPrefix = 'True state: ';
 
 
-for c=numPlots
+for q=1:max(size(numPlots));
+    c = numPlots(q);
     fprintf('\n\n------------------SEQUENCE %i-----------------------------\n',c);
     obs                 = cell2mat(obsNames(data(c).obs));
     true_stat_names     = cell2mat(stateNames(data(c).states));
     pstat_HMMNN_names   = pathHMMNN{c}.namedStates;
     pstat_HMM_names     = pathHMM{c}.namedStates;
     pstat_NN_names      = cell2mat(stateNames(pathNN{c}.states));
+    
+    obs                 = padLine(obs,lineLength);
+    true_stat_names     = padLine(true_stat_names,lineLength);
+    pstat_HMMNN_names   = padLine(pstat_HMMNN_names,lineLength);
+    pstat_HMM_names     = padLine(pstat_HMM_names,lineLength);
+    pstat_NN_names      = padLine(pstat_NN_names,lineLength);
+        
+    
+    
+    
+    
     
     
     for i=1:lineLength:seqLength
@@ -93,6 +105,18 @@ for c=numPlots
         hold off
     end
 end
+
+    function padded = padLine(line,lineLength)
+    %% pads a line with spaces to lineLength
+    if mod(length(line),lineLength) ~= 0
+        ll  = lineLength - mod(length(line),lineLength);
+        pad = repmat(' ',1,ll);
+        padded = [line pad];
+    else
+        padded = line;
+    end
+    
+    end
 end
 
 
