@@ -17,6 +17,9 @@ close all
 rng('default');rng(0);
 %
 % %% settings for hmm model and generate data
+doPlots = 1;   %if probs should be plotted in figures
+
+
 epochs          = 30;
 seqLength       = 210;   %printing may if seqLength % 70 != 0
 transition = [.95 .025 .025;...
@@ -141,5 +144,5 @@ colorBck = [179, 226, 205;
 
 colorLines = [27, 158, 119; 217, 95, 2; 117, 112, 179;]./255;
 hmmplotHMMNN(pathHMMNN, pathHMM, pathNN, probsHMMNN,... %infered paths
-          data_test, obsNames ,stateNames,numStates,numPlots,colorBck, colorLines)
+          data_test, obsNames ,stateNames,numStates,numPlots,colorBck, colorLines,doPlots)
 end
