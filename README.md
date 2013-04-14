@@ -5,4 +5,4 @@ hmm-nn hybrid
 
 
 Run testHMM.m
-Need to have https://github.com/skaae/DeepLearnToolbox in MATLAB path
+Need to havehttps://github.com/rasmusbergpalm/DeepLearnToolbox in MATLAB path
